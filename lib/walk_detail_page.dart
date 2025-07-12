@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'dart:convert'; // JSONデコード用
+// import 'dart:convert'; // JSONデコードは不要になったためコメントアウト
 import 'package:sanpo_app/main.dart'; // Walkモデルをインポート
+import 'package:intl/intl.dart'; // DateFormatを使うために必要
+
+// min, max 関数はdart:mathにあります
+import 'dart:math';
 
 class WalkDetailPage extends StatefulWidget {
   final Walk walk; // 表示する散歩記録データ
@@ -22,22 +26,9 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
   @override
   void initState() {
     super.initState();
-    _decodeRoutePoints(); // ルート座標をデコード
+    // WalkオブジェクトのroutePointsは既にLatLngリストなので、デコードは不要
+    _decodedRoutePoints = widget.walk.routePoints;
     _setMarkers(); // マーカーを設定
-  }
-
-  // JSON文字列からルート座標をデコードする関数
-  void _decodeRoutePoints() {
-    try {
-      final List<dynamic> jsonList = jsonDecode(widget.walk.routePointsJson);
-      _decodedRoutePoints = jsonList.map((map) {
-        return LatLng(map['latitude'], map['longitude']);
-      }).toList();
-      print('ルート座標がデコードされました: ${_decodedRoutePoints.length}点');
-    } catch (e) {
-      print('ルート座標のデコードに失敗しました: $e');
-      _decodedRoutePoints = []; // 失敗した場合は空リスト
-    }
   }
 
   // 開始地点と終了地点にマーカーを設定する関数
@@ -72,7 +63,6 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // マップの中心座標をルートの中央または開始地点に設定
     LatLng initialMapCenter;
     double initialZoom = 15.0;
 
@@ -105,12 +95,13 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // DateFormatはintlパッケージからインポートされているので、直接使用
                 Text(
-                  '開始時間: ${DateFormat('yyyy/MM/dd HH:mm:ss').format(DateTime.parse(widget.walk.startTime))}',
+                  '開始時間: ${DateFormat('yyyy/MM/dd HH:mm:ss').format(widget.walk.startTime)}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 Text(
-                  '終了時間: ${DateFormat('yyyy/MM/dd HH:mm:ss').format(DateTime.parse(widget.walk.endTime))}',
+                  '終了時間: ${DateFormat('yyyy/MM/dd HH:mm:ss').format(widget.walk.endTime)}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 Text(
@@ -140,10 +131,11 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
                   if (_decodedRoutePoints.isNotEmpty) {
                     // ルート全体が画面に収まるようにズームと中心を調整
                     final bounds = LatLngBounds.fromPoints(_decodedRoutePoints);
-                    _mapController.fitBounds(
-                      bounds,
-                      options: const FitBoundsOptions(
-                        padding: EdgeInsets.all(50.0), // 地図の余白
+                    // flutter_map 8.x.x 以降の fitCamera メソッドを使用
+                    _mapController.fitCamera(
+                      CameraFit.bounds(
+                        bounds: bounds,
+                        padding: const EdgeInsets.all(50.0), // 地図の余白
                       ),
                     );
                   }
@@ -180,6 +172,3 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
     );
   }
 }
-
-// min, max 関数はdart:mathにあります
-import 'dart:math';
