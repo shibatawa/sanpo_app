@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "238131386241",
+    "project_id": "sanpo-app-4ba2b",
+    "storage_bucket": "sanpo-app-4ba2b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238131386241:android:dc29884a458a6a92387a80",
+        "android_client_info": {
+          "package_name": "com.example.sanpo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2iqc9bHfsRYrJWD-03uaYVGT4Wqw9cIE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

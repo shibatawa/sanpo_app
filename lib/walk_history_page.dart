@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sanpo_app/main.dart'; // WalkとDatabaseHelperをインポート
-import 'package:intl/intl.dart'; // 日付フォーマット用 (pubspec.yamlに追加が必要)
-
-// pubspec.yamlに intl パッケージを追加してください:
-// dependencies:
-//   intl: ^0.19.0
+import 'package:sanpo_app/main.dart'; // Walkモデルをインポート
+import 'package:intl/intl.dart'; // 日付フォーマット用
+import 'package:sanpo_app/walk_detail_page.dart'; // 詳細ページをインポート
+import 'package:cloud_firestore/cloud_firestore.dart'; // Cloud Firestoreをインポート
 
 class WalkHistoryPage extends StatefulWidget {
   const WalkHistoryPage({super.key});
@@ -17,26 +15,38 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
   List<Walk> _walks = []; // 散歩記録のリスト
   bool _isLoading = true; // データロード中かどうか
 
+  // Firestoreインスタンスを取得
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   void initState() {
     super.initState();
     _loadWalks(); // 画面初期化時に記録をロード
   }
 
-  // データベースから散歩記録をロードする関数
+  // Firestoreから散歩記録をロードする関数
   Future<void> _loadWalks() async {
     setState(() {
       _isLoading = true; // ロード開始
     });
     try {
-      final loadedWalks = await DatabaseHelper.instance.getWalks();
+      // 'walks'コレクションからデータを取得し、startTimeで降順にソート
+      // DatabaseHelperの代わりにFirestoreからデータを取得
+      final querySnapshot = await _firestore.collection('walks')
+          .orderBy('startTime', descending: true) // startTimeはDateTime型なのでorderBy可能
+          .get();
+
+      // 取得したドキュメントをWalkオブジェクトのリストに変換
+      _walks = querySnapshot.docs.map((doc) {
+        return Walk.fromFirestore(doc, null); // fromFirestoreファクトリを使用
+      }).toList();
+
       setState(() {
-        _walks = loadedWalks;
         _isLoading = false; // ロード完了
       });
-      print('散歩記録がロードされました: ${_walks.length}件');
+      print('Firestoreから散歩記録がロードされました: ${_walks.length}件');
     } catch (e) {
-      print('散歩記録のロードに失敗しました: $e');
+      print('Firestoreからの散歩記録のロードに失敗しました: $e');
       setState(() {
         _isLoading = false; // ロード完了
       });
@@ -48,15 +58,6 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('散歩記録履歴'),
-        // 履歴ページに戻ってきたときにリストを再読み込みするために、戻るボタンが押されたらリロード
-        // Navigator.pop() が呼ばれた後に _loadWalks() を呼び出す
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-            // ここでホーム画面に戻った後に、必要であればホーム画面のデータを更新する処理をトリガーすることも可能
-          },
-        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator()) // ロード中はローディング表示
@@ -66,28 +67,36 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
                   itemCount: _walks.length,
                   itemBuilder: (context, index) {
                     final walk = _walks[index];
-                    // 日付を整形して表示
-                    final startTime = DateTime.parse(walk.startTime);
-                    final formattedDate = DateFormat('yyyy/MM/dd HH:mm').format(startTime);
+                    // walk.startTimeは既にDateTime型なので、直接DateFormatに渡す
+                    final formattedDate = DateFormat('yyyy/MM/dd HH:mm').format(walk.startTime); 
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       elevation: 4.0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '日付: $formattedDate',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => WalkDetailPage(walk: walk),
                             ),
-                            const SizedBox(height: 8),
-                            Text('時間: ${walk.duration}', style: const TextStyle(fontSize: 14)),
-                            Text('距離: ${walk.distance.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 14)),
-                            // TODO: 将来的にこの記録の詳細（地図上のルートなど）を表示するボタンを追加
-                          ],
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '日付: $formattedDate',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              Text('時間: ${walk.duration}', style: const TextStyle(fontSize: 14)),
+                              Text('距離: ${walk.distance.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 14)),
+                            ],
+                          ),
                         ),
                       ),
                     );

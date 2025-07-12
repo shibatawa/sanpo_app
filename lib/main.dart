@@ -5,23 +5,26 @@ import 'package:geolocator/geolocator.dart'; // geolocatorパッケージをイ�
 import 'package:flutter_map/flutter_map.dart'; // OpenStreetMap表示用
 import 'package:latlong2/latlong.dart'; // 緯度経度座標用
 import 'dart:async'; // For StreamSubscription
-import 'package:sqflite/sqflite.dart'; // sqfliteパッケージをインポート
-import 'package:path_provider/path_provider.dart'; // path_providerパッケージをインポート
-import 'dart:convert'; // JSONエンコード/デコード用
+import 'dart:convert'; // JSONエンコード/デコード用 (routePointsの変換に必要)
+import 'package:firebase_core/firebase_core.dart'; // Firebase Coreをインポート
+import 'package:cloud_firestore/cloud_firestore.dart'; // Cloud Firestoreをインポート
+import 'firebase_options.dart'; // flutterfire configure で生成されたファイルをインポート
 import 'package:sanpo_app/walk_history_page.dart'; // 新しく作成する履歴ページをインポート
 
 
-import 'package:device_preview/device_preview.dart';
 
-void main() => runApp(
-  DevicePreview(
-    enabled: !kReleaseMode,
-    builder: (context) => MyApp(), // Wrap your app
-  ),
-);
+void main() async {
+  // Flutterのウィジェットバインディングが初期化されていることを確認
+  // Firebaseの初期化は非同期なので必須
+  WidgetsFlutterBinding.ensureInitialized(); 
 
+  // Firebaseを初期化
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-//============================
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -38,14 +41,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// 散歩記録のデータモデル (変更なし)
+// 散歩記録のデータモデル (Firestore対応に調整)
 class Walk {
-  int? id;
-  String startTime;
-  String endTime;
+  String? id; // FirestoreのドキュメントID
+  DateTime startTime; // DateTime型で直接保持
+  DateTime endTime;   // DateTime型で直接保持
   String duration;
   double distance;
-  String routePointsJson;
+  List<LatLng> routePoints; // LatLngのリストを直接保持 (Firestoreに保存する際はMapのリストに変換)
 
   Walk({
     this.id,
@@ -53,88 +56,46 @@ class Walk {
     required this.endTime,
     required this.duration,
     required this.distance,
-    required this.routePointsJson,
+    required this.routePoints,
   });
 
-  factory Walk.fromMap(Map<String, dynamic> map) {
+  // FirestoreからMap<String, dynamic>を受け取り、Walkオブジェクトに変換するファクトリコンストラクタ
+  factory Walk.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
+    final data = snapshot.data();
+    // FirestoreのTimestampをDateTimeに変換
+    final startTime = (data?['startTime'] as Timestamp).toDate();
+    final endTime = (data?['endTime'] as Timestamp).toDate();
+
+    // Firestoreから取得したroutePointsをLatLngのリストに変換
+    final List<dynamic>? routePointsData = data?['routePoints'];
+    final List<LatLng> routePoints = routePointsData != null
+        ? routePointsData.map((point) => LatLng(point['latitude'], point['longitude'])).toList()
+        : [];
+
     return Walk(
-      id: map['id'],
-      startTime: map['startTime'],
-      endTime: map['endTime'],
-      duration: map['duration'],
-      distance: map['distance'],
-      routePointsJson: map['routePointsJson'],
+      id: snapshot.id, // ドキュメントIDをidとして保持
+      startTime: startTime,
+      endTime: endTime,
+      duration: data?['duration'] ?? '',
+      distance: (data?['distance'] as num?)?.toDouble() ?? 0.0,
+      routePoints: routePoints,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  // WalkオブジェクトをFirestoreに保存するためのMap<String, dynamic>に変換するメソッド
+  Map<String, dynamic> toFirestore() {
     return {
-      'id': id,
-      'startTime': startTime,
-      'endTime': endTime,
+      'startTime': Timestamp.fromDate(startTime), // DateTimeをFirestoreのTimestampに変換
+      'endTime': Timestamp.fromDate(endTime),
       'duration': duration,
       'distance': distance,
-      'routePointsJson': routePointsJson,
+      // LatLngのリストをFirestoreが保存できるMapのリストに変換
+      'routePoints': routePoints.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
     };
   }
 }
 
-// データベース操作を管理するヘルパークラス (変更なし)
-class DatabaseHelper {
-  static Database? _database;
-  static const String tableName = 'walks';
-
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
-  DatabaseHelper._privateConstructor();
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  Future<Database> _initDatabase() async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final path = '${documentsDirectory.path}/walks.db';
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
-  }
-
-  Future _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE $tableName (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        startTime TEXT NOT NULL,
-        endTime TEXT NOT NULL,
-        duration TEXT NOT NULL,
-        distance REAL NOT NULL,
-        routePointsJson TEXT NOT NULL
-      )
-    ''');
-  }
-
-  Future<int> insertWalk(Walk walk) async {
-    final db = await instance.database;
-    return await db.insert(tableName, walk.toMap());
-  }
-
-  Future<List<Walk>> getWalks() async {
-    final db = await instance.database;
-    final List<Map<String, dynamic>> maps = await db.query(tableName, orderBy: 'startTime DESC');
-    return List.generate(maps.length, (i) {
-      return Walk.fromMap(maps[i]);
-    });
-  }
-
-  Future<void> close() async {
-    final db = await instance.database;
-    db.close();
-  }
-}
+// DatabaseHelperはFirestoreに移行するため削除します (このファイルからは完全に削除されています)
 
 
 class WalkHomePage extends StatefulWidget {
@@ -158,6 +119,9 @@ class _WalkHomePageState extends State<WalkHomePage> {
   double _totalDistance = 0.0;
   Timer? _timer;
 
+  // Firestoreインスタンスを取得
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   void initState() {
     super.initState();
@@ -168,7 +132,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
   void dispose() {
     _positionStreamSubscription?.cancel();
     _timer?.cancel();
-    DatabaseHelper.instance.close();
+    // SQLiteのDatabaseHelper.instance.close(); は不要になったため削除済み
     super.dispose();
   }
 
@@ -309,21 +273,21 @@ class _WalkHomePageState extends State<WalkHomePage> {
     final startTime = now.subtract(_stopwatch.elapsed);
     final endTime = now;
 
-    final routePointsJson = jsonEncode(_routePoints.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList());
-
+    // Firestoreに保存するためのWalkオブジェクトを作成
     final walk = Walk(
-      startTime: startTime.toIso8601String(),
-      endTime: endTime.toIso8601String(),
+      startTime: startTime,
+      endTime: endTime,
       duration: _elapsedTime,
       distance: _totalDistance,
-      routePointsJson: routePointsJson,
+      routePoints: _routePoints, // LatLngリストを直接渡す
     );
 
     try {
-      await DatabaseHelper.instance.insertWalk(walk);
-      print('散歩記録が保存されました！');
+      // Firestoreの'walks'コレクションにデータを追加
+      await _firestore.collection('walks').add(walk.toFirestore());
+      print('散歩記録がFirestoreに保存されました！');
     } catch (e) {
-      print('散歩記録の保存に失敗しました: $e');
+      print('散歩記録のFirestoreへの保存に失敗しました: $e');
     }
   }
 
@@ -338,7 +302,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
   Widget build(BuildContext context) {
     final LatLng initialMapCenter = _currentPosition != null
         ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
-        : const LatLng(35.681236, 139.767125);
+        : const LatLng(35.681236, 139.767125); // 東京駅の座標
 
     return Scaffold(
       appBar: AppBar(
@@ -426,10 +390,9 @@ class _WalkHomePageState extends State<WalkHomePage> {
                   onPressed: _isWalking ? _stopWalk : null,
                   child: const Text('散歩終了'),
                 ),
-                const SizedBox(height: 20), // 新しいボタンとの間隔
-                ElevatedButton( // 新しく追加するボタン
+                const SizedBox(height: 20),
+                ElevatedButton(
                   onPressed: () {
-                    // 記録履歴ページへ遷移
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const WalkHistoryPage()),

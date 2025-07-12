@@ -38,8 +38,10 @@ dependencies:
   google_maps_flutter: ^2.12.3
   geolocator: ^14.0.2
   flutter_map: ^8.1.1
-  sqflite: ^2.4.2
-  path_provider: ^2.1.5
+  firebase_core: ^2.28.0
+  cloud_firestore: ^4.16.0
+  # sqflite: ^2.4.2
+  # path_provider: ^2.1.5
   intl: ^0.20.2 # ここを修正！
 
 
