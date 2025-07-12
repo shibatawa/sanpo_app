@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-
-import 'package:geolocator/geolocator.dart'; // geolocatorパッケージをインポート
-import 'package:flutter_map/flutter_map.dart'; // OpenStreetMap表示用
-import 'package:latlong2/latlong.dart'; // 緯度経度座標用
-import 'dart:async'; // For StreamSubscription
-import 'dart:convert'; // JSONエンコード/デコード用 (routePointsの変換に必要)
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'dart:async';
+import 'dart:convert'; // JSONエンコード/デコード用
 import 'package:firebase_core/firebase_core.dart'; // Firebase Coreをインポート
 import 'package:cloud_firestore/cloud_firestore.dart'; // Cloud Firestoreをインポート
 import 'firebase_options.dart'; // flutterfire configure で生成されたファイルをインポート
-import 'package:sanpo_app/walk_history_page.dart'; // 新しく作成する履歴ページをインポート
-
-
+import 'package:sanpo_app/walk_history_page.dart'; // 履歴ページをインポート
 
 void main() async {
   // Flutterのウィジェットバインディングが初期化されていることを確認
-  // Firebaseの初期化は非同期なので必須
+  // Firebaseの初期化は非同期なので、この行は必須です。
   WidgetsFlutterBinding.ensureInitialized(); 
 
-  // Firebaseを初期化
+  // Firebaseを初期化します。
+  // flutterfire configure コマンドで生成された firebase_options.dart ファイルの
+  // DefaultFirebaseOptions.currentPlatform を使用します。
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -95,8 +93,6 @@ class Walk {
   }
 }
 
-// DatabaseHelperはFirestoreに移行するため削除します (このファイルからは完全に削除されています)
-
 
 class WalkHomePage extends StatefulWidget {
   const WalkHomePage({super.key});
@@ -132,7 +128,6 @@ class _WalkHomePageState extends State<WalkHomePage> {
   void dispose() {
     _positionStreamSubscription?.cancel();
     _timer?.cancel();
-    // SQLiteのDatabaseHelper.instance.close(); は不要になったため削除済み
     super.dispose();
   }
 

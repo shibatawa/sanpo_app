@@ -72,4 +72,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'sanpo-app-4ba2b.firebasestorage.app',
     iosBundleId: 'com.example.sanpoApp',
   );
+
 }
