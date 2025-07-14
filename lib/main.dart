@@ -32,7 +32,75 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '散歩記録アプリ',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF838213),
+          brightness: Brightness.light,
+        ),
+        fontFamily: 'Hiragino Sans',
+        textTheme: const TextTheme(
+          headlineLarge: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF252525),
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF252525),
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF252525),
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF252525),
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF252525),
+          ),
+          labelLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF252525),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF838213),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        cardTheme: CardTheme(
+          color: Colors.white,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF838213),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          titleTextStyle: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
       home: const WalkHomePage(),
     );
@@ -199,10 +267,16 @@ class _WalkHomePageState extends State<WalkHomePage> {
       width: 80.0,
       height: 80.0,
       point: LatLng(position.latitude, position.longitude),
-      child: const Icon(
-        Icons.location_on,
-        color: Colors.blue,
-        size: 40.0,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF838213),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.person,
+          color: Colors.white,
+          size: 32.0,
+        ),
       ),
     );
   }
@@ -360,6 +434,42 @@ class _WalkHomePageState extends State<WalkHomePage> {
     _lastPosition = null;
   }
 
+  // 統計情報カード作成ヘルパーメソッド
+  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: const Color(0xFF694834),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final LatLng initialMapCenter = _currentPosition != null
@@ -381,21 +491,77 @@ class _WalkHomePageState extends State<WalkHomePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Column(
-                  children: [
-                    const Text('時間', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text(_elapsedTime, style: const TextStyle(fontSize: 24, color: Colors.green)),
-                  ],
+                Expanded(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.timer, size: 20, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                '時間',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF694834),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _elapsedTime,
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              color: const Color(0xFF838213),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                Column(
-                  children: [
-                    const Text('距離', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('${_totalDistance.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 24, color: Colors.orange)),
-                  ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.straighten, size: 20, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                '距離',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF694834),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_totalDistance.toStringAsFixed(0)} m',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              color: const Color(0xFF838213),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -403,57 +569,108 @@ class _WalkHomePageState extends State<WalkHomePage> {
           // 統計情報表示エリア
           if (_isWalking)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  children: [
-                    const Text('リアルタイム統計', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Column(
-                          children: [
-                            const Text('現在速度', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text('${(_currentSpeed * 3.6).toStringAsFixed(1)} km/h', 
-                                style: const TextStyle(fontSize: 16, color: Colors.blue)),
-                          ],
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.analytics, size: 24, color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            'リアルタイム統計',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: const Color(0xFF252525),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          if (constraints.maxWidth < 400) {
+                            // 小さな画面では縦に配置
+                            return Column(
+                              children: [
+                                _buildStatCard(
+                                  context,
+                                  Icons.speed,
+                                  '現在速度',
+                                  '${(_currentSpeed * 3.6).toStringAsFixed(1)} km/h',
+                                  const Color(0xFF6B73FF),
+                                ),
+                                const SizedBox(height: 8),
+                                _buildStatCard(
+                                  context,
+                                  Icons.trending_up,
+                                  '平均速度',
+                                  '${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h',
+                                  const Color(0xFF9C27B0),
+                                ),
+                                const SizedBox(height: 8),
+                                _buildStatCard(
+                                  context,
+                                  Icons.flash_on,
+                                  '最大速度',
+                                  '${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h',
+                                  const Color(0xFFFF5722),
+                                ),
+                              ],
+                            );
+                          } else {
+                            // 大きな画面では横に配置
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: _buildStatCard(
+                                    context,
+                                    Icons.speed,
+                                    '現在速度',
+                                    '${(_currentSpeed * 3.6).toStringAsFixed(1)} km/h',
+                                    const Color(0xFF6B73FF),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildStatCard(
+                                    context,
+                                    Icons.trending_up,
+                                    '平均速度',
+                                    '${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h',
+                                    const Color(0xFF9C27B0),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildStatCard(
+                                    context,
+                                    Icons.flash_on,
+                                    '最大速度',
+                                    '${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h',
+                                    const Color(0xFFFF5722),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: _buildStatCard(
+                          context,
+                          Icons.local_fire_department,
+                          '消費カロリー',
+                          '${_estimatedCalories.toStringAsFixed(1)} kcal',
+                          const Color(0xFFFF9800),
                         ),
-                        Column(
-                          children: [
-                            const Text('平均速度', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text('${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h', 
-                                style: const TextStyle(fontSize: 16, color: Colors.purple)),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            const Text('最大速度', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text('${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h', 
-                                style: const TextStyle(fontSize: 16, color: Colors.red)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Column(
-                          children: [
-                            const Text('消費カロリー', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text('${_estimatedCalories.toStringAsFixed(1)} kcal', 
-                                style: const TextStyle(fontSize: 16, color: Colors.orange)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -488,8 +705,8 @@ class _WalkHomePageState extends State<WalkHomePage> {
                           polylines: [
                             Polyline(
                               points: _routePoints,
-                              strokeWidth: 4.0,
-                              color: Colors.blue,
+                              strokeWidth: 5.0,
+                              color: const Color(0xFF838213),
                             ),
                           ],
                         ),
@@ -497,27 +714,81 @@ class _WalkHomePageState extends State<WalkHomePage> {
                   ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                ElevatedButton(
-                  onPressed: _isWalking ? null : _startWalk,
-                  child: const Text('散歩開始'),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: _isWalking ? null : _startWalk,
+                    icon: const Icon(Icons.play_arrow, size: 24),
+                    label: const Text('散歩開始'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isWalking ? const Color(0xFF694834) : const Color(0xFF838213),
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(0xFF987872),
+                      disabledForegroundColor: Colors.white70,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _isWalking ? _stopWalk : null,
-                  child: const Text('散歩終了'),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: _isWalking ? _stopWalk : null,
+                    icon: const Icon(Icons.stop, size: 24),
+                    label: const Text('散歩終了'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isWalking ? const Color(0xFFE57373) : const Color(0xFF987872),
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(0xFF987872),
+                      disabledForegroundColor: Colors.white70,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const WalkHistoryPage()),
-                    );
-                  },
-                  child: const Text('記録を見る'),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => const WalkHistoryPage(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(1.0, 0.0);
+                            const end = Offset.zero;
+                            const curve = Curves.ease;
+
+                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.history, size: 24),
+                    label: const Text('記録を見る'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF838213),
+                      side: const BorderSide(color: Color(0xFF838213), width: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
