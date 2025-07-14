@@ -114,6 +114,14 @@ class _WalkHomePageState extends State<WalkHomePage> {
   String _elapsedTime = '00:00:00';
   double _totalDistance = 0.0;
   Timer? _timer;
+  
+  // 統計情報用の変数
+  double _currentSpeed = 0.0; // 現在の速度 (m/s)
+  double _maxSpeed = 0.0; // 最大速度 (m/s)
+  double _averageSpeed = 0.0; // 平均速度 (m/s)
+  double _estimatedCalories = 0.0; // 推定消費カロリー (kcal)
+  DateTime? _lastPositionUpdateTime; // 最後の位置更新時刻
+  Position? _lastPosition; // 最後の位置
 
   // Firestoreインスタンスを取得
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -209,6 +217,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
       _totalDistance = 0.0;
       _elapsedTime = '00:00:00';
       _currentLocationMarker = null;
+      _resetStatistics(); // 統計情報をリセット
     });
     print('散歩開始ボタンが押されました');
 
@@ -241,6 +250,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
         _routePoints.add(LatLng(position.latitude, position.longitude));
         _updateCurrentLocationMarker(position);
         _moveMapToCurrentLocation(position);
+        _updateStatistics(position); // 統計情報を更新
       });
       print('位置情報更新: ${position.latitude}, ${position.longitude}, 距離: ${_totalDistance.toStringAsFixed(2)}m');
     }, onError: (e) {
@@ -260,7 +270,11 @@ class _WalkHomePageState extends State<WalkHomePage> {
 
     setState(() {
       _isWalking = false;
-      _currentStatus = "散歩を終了しました。時間: $_elapsedTime, 距離: ${_totalDistance.toStringAsFixed(2)}m";
+      _currentStatus = "散歩を終了しました。\n"
+          "時間: $_elapsedTime, 距離: ${_totalDistance.toStringAsFixed(2)}m\n"
+          "平均速度: ${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h, "
+          "最大速度: ${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h\n"
+          "消費カロリー: ${_estimatedCalories.toStringAsFixed(1)} kcal";
     });
     print('散歩終了ボタンが押されました');
 
@@ -291,6 +305,59 @@ class _WalkHomePageState extends State<WalkHomePage> {
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
     return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  // 統計情報を計算・更新するメソッド
+  void _updateStatistics(Position newPosition) {
+    final now = DateTime.now();
+    
+    if (_lastPosition != null && _lastPositionUpdateTime != null) {
+      // 距離の計算
+      final distance = Geolocator.distanceBetween(
+        _lastPosition!.latitude,
+        _lastPosition!.longitude,
+        newPosition.latitude,
+        newPosition.longitude,
+      );
+      
+      // 時間の計算 (秒)
+      final timeDiff = now.difference(_lastPositionUpdateTime!).inMilliseconds / 1000.0;
+      
+      if (timeDiff > 0) {
+        // 現在の速度を計算 (m/s)
+        _currentSpeed = distance / timeDiff;
+        
+        // 最大速度を更新
+        if (_currentSpeed > _maxSpeed) {
+          _maxSpeed = _currentSpeed;
+        }
+        
+        // 平均速度を計算 (総距離 / 総時間)
+        final totalTimeInSeconds = _stopwatch.elapsed.inSeconds;
+        if (totalTimeInSeconds > 0) {
+          _averageSpeed = _totalDistance / totalTimeInSeconds;
+        }
+        
+        // 消費カロリーを推定 (簡易計算: 体重60kg, 歩行速度に基づく)
+        // 歩行: 約3.5 METs, 走行: 約8 METs
+        final walkingSpeed = _averageSpeed * 3.6; // m/s to km/h
+        final mets = walkingSpeed < 6.0 ? 3.5 : 8.0; // 6km/h以下は歩行、以上は走行
+        _estimatedCalories = (mets * 60.0 * (totalTimeInSeconds / 3600.0)); // 体重60kg想定
+      }
+    }
+    
+    _lastPosition = newPosition;
+    _lastPositionUpdateTime = now;
+  }
+
+  // 統計情報をリセットするメソッド
+  void _resetStatistics() {
+    _currentSpeed = 0.0;
+    _maxSpeed = 0.0;
+    _averageSpeed = 0.0;
+    _estimatedCalories = 0.0;
+    _lastPositionUpdateTime = null;
+    _lastPosition = null;
   }
 
   @override
@@ -333,6 +400,63 @@ class _WalkHomePageState extends State<WalkHomePage> {
               ],
             ),
           ),
+          // 統計情報表示エリア
+          if (_isWalking)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  children: [
+                    const Text('リアルタイム統計', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Column(
+                          children: [
+                            const Text('現在速度', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('${(_currentSpeed * 3.6).toStringAsFixed(1)} km/h', 
+                                style: const TextStyle(fontSize: 16, color: Colors.blue)),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            const Text('平均速度', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h', 
+                                style: const TextStyle(fontSize: 16, color: Colors.purple)),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            const Text('最大速度', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h', 
+                                style: const TextStyle(fontSize: 16, color: Colors.red)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            const Text('消費カロリー', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('${_estimatedCalories.toStringAsFixed(1)} kcal', 
+                                style: const TextStyle(fontSize: 16, color: Colors.orange)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           Expanded(
             child: _currentPosition == null && !_isWalking
                 ? const Center(child: CircularProgressIndicator())
