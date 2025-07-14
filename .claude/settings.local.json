@@ -8,7 +8,8 @@
       "Bash(robocopy:*)",
       "Bash(powershell:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(flutter run:*)"
     ],
     "deny": []
   }
