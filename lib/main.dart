@@ -290,7 +290,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
       _routePoints.clear();
       _totalDistance = 0.0;
       _elapsedTime = '00:00:00';
-      _currentLocationMarker = null;
+      // 現在地マーカーはnullにしない（地図が消える原因）
       _resetStatistics(); // 統計情報をリセット
     });
     print('散歩開始ボタンが押されました');
@@ -480,8 +480,9 @@ class _WalkHomePageState extends State<WalkHomePage> {
       appBar: AppBar(
         title: const Text('散歩記録'),
       ),
-      body: Column(
-        children: <Widget>[
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
@@ -674,8 +675,9 @@ class _WalkHomePageState extends State<WalkHomePage> {
                 ),
               ),
             ),
-          Expanded(
-            child: _currentPosition == null && !_isWalking
+          Container(
+            height: 400, // 地図の高さを固定
+            child: _currentPosition == null
                 ? const Center(child: CircularProgressIndicator())
                 : FlutterMap(
                     mapController: _mapController,
@@ -794,6 +796,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
