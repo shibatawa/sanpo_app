@@ -31,9 +31,8 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
     });
     try {
       // 'walks'コレクションからデータを取得し、startTimeで降順にソート
-      // DatabaseHelperの代わりにFirestoreからデータを取得
       final querySnapshot = await _firestore.collection('walks')
-          .orderBy('startTime', descending: true) // startTimeはDateTime型なのでorderBy可能
+          .orderBy('startTime', descending: true)
           .get();
 
       // 取得したドキュメントをWalkオブジェクトのリストに変換
@@ -53,6 +52,46 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
     }
   }
 
+  // 散歩記録を削除する関数
+  Future<void> _deleteWalk(String walkId) async {
+    // 確認ダイアログを表示
+    final bool? confirmDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('記録の削除'),
+          content: const Text('この散歩記録を本当に削除しますか？'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false), // キャンセル
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true), // 削除
+              child: const Text('削除', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true) {
+      try {
+        // Firestoreからドキュメントを削除
+        await _firestore.collection('walks').doc(walkId).delete();
+        print('散歩記録 (ID: $walkId) が削除されました。');
+        // 削除後、リストを再ロードしてUIを更新
+        _loadWalks();
+      } catch (e) {
+        print('散歩記録の削除に失敗しました: $e');
+        // エラーメッセージをユーザーに表示することも可能
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('記録の削除に失敗しました: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,8 +106,7 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
                   itemCount: _walks.length,
                   itemBuilder: (context, index) {
                     final walk = _walks[index];
-                    // walk.startTimeは既にDateTime型なので、直接DateFormatに渡す
-                    final formattedDate = DateFormat('yyyy/MM/dd HH:mm').format(walk.startTime); 
+                    final formattedDate = DateFormat('yyyy/MM/dd HH:mm').format(walk.startTime);
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -85,16 +123,33 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row( // Rowを追加して情報と削除ボタンを並べる
                             children: [
-                              Text(
-                                '日付: $formattedDate',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              Expanded( // 情報を左側に寄せる
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '日付: $formattedDate',
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text('時間: ${walk.duration}', style: const TextStyle(fontSize: 14)),
+                                    Text('距離: ${walk.distance.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 14)),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              Text('時間: ${walk.duration}', style: const TextStyle(fontSize: 14)),
-                              Text('距離: ${walk.distance.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 14)),
+                              // 削除ボタン
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  if (walk.id != null) {
+                                    _deleteWalk(walk.id!); // ドキュメントIDを渡して削除関数を呼び出す
+                                  } else {
+                                    print('エラー: 削除するWalkのIDがありません。');
+                                  }
+                                },
+                              ),
                             ],
                           ),
                         ),
