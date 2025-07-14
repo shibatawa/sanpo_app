@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF838213),
+          seedColor: const Color(0xFF222222),
           brightness: Brightness.light,
         ),
         fontFamily: 'Hiragino Sans',
@@ -72,11 +72,9 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF838213),
-            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
             textStyle: const TextStyle(
               fontSize: 16,
@@ -92,13 +90,11 @@ class MyApp extends StatelessWidget {
           ),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF838213),
-          foregroundColor: Colors.white,
           elevation: 0,
+          centerTitle: true,
           titleTextStyle: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
           ),
         ),
       ),
@@ -272,13 +268,17 @@ class _WalkHomePageState extends State<WalkHomePage> {
       height: 40.0,
       point: LatLng(position.latitude, position.longitude),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF838213),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onPrimary,
+            width: 2,
+          ),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.person,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
           size: 20.0,
         ),
       ),
@@ -607,7 +607,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                   Icons.speed,
                                   '現在速度',
                                   '${(_currentSpeed * 3.6).toStringAsFixed(1)} km/h',
-                                  const Color(0xFF6B73FF),
+                                  Theme.of(context).colorScheme.primary,
                                 ),
                                 const SizedBox(height: 8),
                                 _buildStatCard(
@@ -615,7 +615,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                   Icons.trending_up,
                                   '平均速度',
                                   '${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h',
-                                  const Color(0xFF9C27B0),
+                                  Theme.of(context).colorScheme.secondary,
                                 ),
                                 const SizedBox(height: 8),
                                 _buildStatCard(
@@ -623,7 +623,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                   Icons.flash_on,
                                   '最大速度',
                                   '${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h',
-                                  const Color(0xFFFF5722),
+                                  Theme.of(context).colorScheme.tertiary,
                                 ),
                               ],
                             );
@@ -637,7 +637,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                     Icons.speed,
                                     '現在速度',
                                     '${(_currentSpeed * 3.6).toStringAsFixed(1)} km/h',
-                                    const Color(0xFF6B73FF),
+                                    Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -647,7 +647,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                     Icons.trending_up,
                                     '平均速度',
                                     '${(_averageSpeed * 3.6).toStringAsFixed(1)} km/h',
-                                    const Color(0xFF9C27B0),
+                                    Theme.of(context).colorScheme.secondary,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -657,7 +657,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                     Icons.flash_on,
                                     '最大速度',
                                     '${(_maxSpeed * 3.6).toStringAsFixed(1)} km/h',
-                                    const Color(0xFFFF5722),
+                                    Theme.of(context).colorScheme.tertiary,
                                   ),
                                 ),
                               ],
@@ -672,7 +672,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                           Icons.local_fire_department,
                           '消費カロリー',
                           '${_estimatedCalories.toStringAsFixed(1)} kcal',
-                          const Color(0xFFFF9800),
+                          Theme.of(context).colorScheme.errorContainer,
                         ),
                       ),
                     ],
@@ -713,7 +713,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                             Polyline(
                               points: _routePoints,
                               strokeWidth: 5.0,
-                              color: const Color(0xFF838213),
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ],
                         ),
@@ -732,10 +732,12 @@ class _WalkHomePageState extends State<WalkHomePage> {
                     icon: const Icon(Icons.play_arrow, size: 24),
                     label: const Text('散歩開始'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isWalking ? const Color(0xFF694834) : const Color(0xFF838213),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF987872),
-                      disabledForegroundColor: Colors.white70,
+                      backgroundColor: _isWalking 
+                          ? Theme.of(context).colorScheme.surface
+                          : Theme.of(context).colorScheme.primary,
+                      foregroundColor: _isWalking
+                          ? Theme.of(context).colorScheme.onSurface
+                          : Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -751,10 +753,12 @@ class _WalkHomePageState extends State<WalkHomePage> {
                     icon: const Icon(Icons.stop, size: 24),
                     label: const Text('散歩終了'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isWalking ? const Color(0xFFE57373) : const Color(0xFF987872),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF987872),
-                      disabledForegroundColor: Colors.white70,
+                      backgroundColor: _isWalking 
+                          ? Theme.of(context).colorScheme.error
+                          : Theme.of(context).colorScheme.surface,
+                      foregroundColor: _isWalking
+                          ? Theme.of(context).colorScheme.onError
+                          : Theme.of(context).colorScheme.onSurface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -789,8 +793,11 @@ class _WalkHomePageState extends State<WalkHomePage> {
                     icon: const Icon(Icons.history, size: 24),
                     label: const Text('記録を見る'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF838213),
-                      side: const BorderSide(color: Color(0xFF838213), width: 2),
+                      foregroundColor: Theme.of(context).colorScheme.primary,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outline,
+                        width: 1,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
