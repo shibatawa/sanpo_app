@@ -115,6 +115,7 @@ class Walk {
   String duration;
   double distance;
   List<LatLng> routePoints; // LatLngのリストを直接保持 (Firestoreに保存する際はMapのリストに変換)
+  double estimatedCalories; // 推定消費カロリー
 
   Walk({
     this.id,
@@ -123,6 +124,7 @@ class Walk {
     required this.duration,
     required this.distance,
     required this.routePoints,
+    this.estimatedCalories = 0.0,
   });
 
   // FirestoreからMap<String, dynamic>を受け取り、Walkオブジェクトに変換するファクトリコンストラクタ
@@ -145,6 +147,7 @@ class Walk {
       duration: data?['duration'] ?? '',
       distance: (data?['distance'] as num?)?.toDouble() ?? 0.0,
       routePoints: routePoints,
+      estimatedCalories: (data?['estimatedCalories'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -155,6 +158,7 @@ class Walk {
       'endTime': Timestamp.fromDate(endTime),
       'duration': duration,
       'distance': distance,
+      'estimatedCalories': estimatedCalories,
       // LatLngのリストをFirestoreが保存できるMapのリストに変換
       'routePoints': routePoints.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
     };
@@ -264,8 +268,8 @@ class _WalkHomePageState extends State<WalkHomePage> {
 
   void _updateCurrentLocationMarker(Position position) {
     _currentLocationMarker = Marker(
-      width: 80.0,
-      height: 80.0,
+      width: 40.0,
+      height: 40.0,
       point: LatLng(position.latitude, position.longitude),
       child: Container(
         decoration: const BoxDecoration(
@@ -275,7 +279,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
         child: const Icon(
           Icons.person,
           color: Colors.white,
-          size: 32.0,
+          size: 20.0,
         ),
       ),
     );
@@ -363,6 +367,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
       duration: _elapsedTime,
       distance: _totalDistance,
       routePoints: _routePoints, // LatLngリストを直接渡す
+      estimatedCalories: _estimatedCalories,
     );
 
     try {

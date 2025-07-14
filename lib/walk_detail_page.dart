@@ -38,24 +38,24 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
       final endPoint = _decodedRoutePoints.last;
 
       _startMarker = Marker(
-        width: 80.0,
-        height: 80.0,
+        width: 40.0,
+        height: 40.0,
         point: startPoint,
         child: const Icon(
           Icons.flag, // 開始地点のアイコン
           color: Colors.green,
-          size: 40.0,
+          size: 24.0,
         ),
       );
 
       _endMarker = Marker(
-        width: 80.0,
-        height: 80.0,
+        width: 40.0,
+        height: 40.0,
         point: endPoint,
         child: const Icon(
           Icons.check_box, // 終了地点のアイコン
           color: Colors.red,
-          size: 40.0,
+          size: 24.0,
         ),
       );
     }
@@ -110,6 +110,10 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
                 ),
                 Text(
                   '距離: ${widget.walk.distance.toStringAsFixed(2)} m',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                Text(
+                  '消費カロリー: ${widget.walk.estimatedCalories.toStringAsFixed(1)} kcal',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 10),
