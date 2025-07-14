@@ -38,36 +38,36 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         fontFamily: 'Hiragino Sans',
-        textTheme: const TextTheme(
+        textTheme: TextTheme(
           headlineLarge: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF252525),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           headlineMedium: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF252525),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           headlineSmall: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF252525),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           bodyLarge: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF252525),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           bodyMedium: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF252525),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           labelLarge: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF252525),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -82,10 +82,9 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        cardTheme: const CardThemeData(
-          color: Colors.white,
+        cardTheme: CardThemeData(
           elevation: 2,
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
         ),
@@ -456,7 +455,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: const Color(0xFF694834),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -516,7 +515,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                 '時間',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF694834),
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -525,7 +524,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                           Text(
                             _elapsedTime,
                             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: const Color(0xFF838213),
+                              color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -551,7 +550,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                                 '距離',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF694834),
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -560,7 +559,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                           Text(
                             '${_totalDistance.toStringAsFixed(0)} m',
                             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: const Color(0xFF838213),
+                              color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -589,7 +588,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                           Text(
                             'リアルタイム統計',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: const Color(0xFF252525),
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -672,7 +671,7 @@ class _WalkHomePageState extends State<WalkHomePage> {
                           Icons.local_fire_department,
                           '消費カロリー',
                           '${_estimatedCalories.toStringAsFixed(1)} kcal',
-                          Theme.of(context).colorScheme.errorContainer,
+                          Theme.of(context).colorScheme.secondary,
                         ),
                       ),
                     ],

@@ -41,9 +41,9 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
         width: 40.0,
         height: 40.0,
         point: startPoint,
-        child: const Icon(
+        child: Icon(
           Icons.flag, // 開始地点のアイコン
-          color: Colors.green,
+          color: Theme.of(context).colorScheme.primary,
           size: 24.0,
         ),
       );
@@ -52,9 +52,9 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
         width: 40.0,
         height: 40.0,
         point: endPoint,
-        child: const Icon(
+        child: Icon(
           Icons.check_box, // 終了地点のアイコン
-          color: Colors.red,
+          color: Theme.of(context).colorScheme.secondary,
           size: 24.0,
         ),
       );
@@ -98,26 +98,48 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
                 // DateFormatはintlパッケージからインポートされているので、直接使用
                 Text(
                   '開始時間: ${DateFormat('yyyy/MM/dd HH:mm:ss').format(widget.walk.startTime)}',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Text(
                   '終了時間: ${DateFormat('yyyy/MM/dd HH:mm:ss').format(widget.walk.endTime)}',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Text(
                   '経過時間: ${widget.walk.duration}',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Text(
                   '距離: ${widget.walk.distance.toStringAsFixed(2)} m',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Text(
                   '消費カロリー: ${widget.walk.estimatedCalories.toStringAsFixed(1)} kcal',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 10),
-                const Text('散歩ルート:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  '散歩ルート:',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ],
             ),
           ),
@@ -157,7 +179,7 @@ class _WalkDetailPageState extends State<WalkDetailPage> {
                       Polyline(
                         points: _decodedRoutePoints,
                         strokeWidth: 5.0,
-                        color: Colors.blueAccent,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),

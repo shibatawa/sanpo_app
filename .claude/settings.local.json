@@ -9,7 +9,8 @@
       "Bash(powershell:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(flutter run:*)"
+      "Bash(flutter run:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

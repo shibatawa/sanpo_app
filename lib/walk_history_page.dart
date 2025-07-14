@@ -59,16 +59,28 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('記録の削除'),
-          content: const Text('この散歩記録を本当に削除しますか？'),
+          title: Text(
+            '記録の削除',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          ),
+          content: Text(
+            'この散歩記録を本当に削除しますか？',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false), // キャンセル
-              child: const Text('キャンセル'),
+              child: Text(
+                'キャンセル',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true), // 削除
-              child: const Text('削除', style: TextStyle(color: Colors.red)),
+              child: Text(
+                '削除',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           ],
         );
@@ -99,9 +111,18 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
         title: const Text('散歩記録履歴'),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator()) // ロード中はローディング表示
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ) // ロード中はローディング表示
           : _walks.isEmpty
-              ? const Center(child: Text('まだ散歩記録がありません。')) // 記録がない場合
+              ? Center(
+                  child: Text(
+                    'まだ散歩記録がありません。',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                ) // 記録がない場合
               : ListView.builder(
                   itemCount: _walks.length,
                   itemBuilder: (context, index) {
@@ -131,17 +152,36 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
                                   children: [
                                     Text(
                                       '日付: $formattedDate',
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Text('時間: ${walk.duration}', style: const TextStyle(fontSize: 14)),
-                                    Text('距離: ${walk.distance.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 14)),
+                                    Text(
+                                      '時間: ${walk.duration}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      '距離: ${walk.distance.toStringAsFixed(2)} m',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                               // 削除ボタン
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
                                 onPressed: () {
                                   if (walk.id != null) {
                                     _deleteWalk(walk.id!); // ドキュメントIDを渡して削除関数を呼び出す
@@ -159,7 +199,11 @@ class _WalkHistoryPageState extends State<WalkHistoryPage> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: _loadWalks, // FABを押すと記録を再読み込み
-        child: const Icon(Icons.refresh),
+        child: Icon(
+          Icons.refresh,
+          color: Theme.of(context).colorScheme.onPrimary,
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }
